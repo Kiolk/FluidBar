@@ -10,7 +10,7 @@ plugins {
 }
 
 group = "io.github.kiolk"
-version = "0.1.0"
+version = "0.2.0"
 
 mavenPublishing {
     publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
