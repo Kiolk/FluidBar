@@ -1,4 +1,4 @@
-package com.github.kiolk.fluidbar
+package io.github.kiolk.fluidbar
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable

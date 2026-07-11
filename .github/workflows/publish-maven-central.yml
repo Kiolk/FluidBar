@@ -1,0 +1,49 @@
+name: Publish to Maven Central
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Read project version
+        id: version
+        run: |
+          VERSION=$(./gradlew -q :fluidbar:properties | grep '^version:' | awk '{print $2}')
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      # Central is immutable per version, and this workflow runs on every push to main —
+      # skip instead of failing when the current version was already released.
+      - name: Check if this version is already published
+        id: check
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            "https://repo1.maven.org/maven2/io/github/kiolk/fluidbar/$VERSION/fluidbar-$VERSION.pom")
+          echo "exists=$([ "$STATUS" = "200" ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+
+      - name: Publish to Maven Central
+        if: steps.check.outputs.exists == 'false'
+        env:
+          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.GPG_SIGNING_KEY }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.GPG_SIGNING_PASSWORD }}
+        run: ./gradlew :fluidbar:publishToMavenCentral --no-configuration-cache
+
+      - name: Skipped (version already published)
+        if: steps.check.outputs.exists == 'true'
+        run: echo "Version ${{ steps.version.outputs.version }} is already on Maven Central — bump the version to publish a new release."

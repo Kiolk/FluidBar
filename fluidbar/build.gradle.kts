@@ -1,3 +1,4 @@
+import com.vanniktech.maven.publish.SonatypeHost
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -5,11 +6,46 @@ plugins {
     alias(libs.plugins.androidMultiplatformLibrary)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
-    `maven-publish`
+    alias(libs.plugins.vanniktechMavenPublish)
 }
 
-group = "com.github.kiolk"
+group = "io.github.kiolk"
 version = "0.1.0"
+
+mavenPublishing {
+    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
+    signAllPublications()
+
+    coordinates(group.toString(), "fluidbar", version.toString())
+
+    pom {
+        name.set("FluidBar")
+        description.set(
+            "A Compose Multiplatform bottom tab bar with a liquid, drop-of-fluid indicator " +
+                "instead of a static highlight.",
+        )
+        inceptionYear.set("2026")
+        url.set("https://github.com/Kiolk/FluidBar")
+        licenses {
+            license {
+                name.set("MIT License")
+                url.set("https://github.com/Kiolk/FluidBar/blob/main/LICENSE")
+            }
+        }
+        developers {
+            developer {
+                id.set("kiolk")
+                name.set("Yauheni Slizh")
+                url.set("https://github.com/Kiolk")
+            }
+        }
+        scm {
+            url.set("https://github.com/Kiolk/FluidBar")
+            connection.set("scm:git:git://github.com/Kiolk/FluidBar.git")
+            developerConnection.set("scm:git:ssh://git@github.com/Kiolk/FluidBar.git")
+        }
+    }
+}
 
 kotlin {
     listOf(
@@ -23,7 +59,7 @@ kotlin {
     }
 
     androidLibrary {
-        namespace = "com.github.kiolk.fluidbar"
+        namespace = "io.github.kiolk.fluidbar"
         compileSdk = libs.versions.android.compileSdk.get().toInt()
         minSdk = libs.versions.android.minSdk.get().toInt()
 
